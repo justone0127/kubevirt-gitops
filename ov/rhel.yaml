@@ -94,5 +94,3 @@ spec:
             password: redhat
             chpasswd: { expire: False }
         name: cloudinitdisk
-kind: List
-metadata: {}
