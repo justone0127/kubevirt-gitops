@@ -83,6 +83,8 @@ items:
               chpasswd:
                 expire: false
           name: cloudinitdisk
+kind: List
+metadata: {}
 parameters:
 - description: VM name
   name: NAME
