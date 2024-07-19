@@ -1,1 +1,101 @@
-test
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rhel8-server-demo-custom
+objects:
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachine
+  metadata:
+    labels:
+      app: ${NAME}
+      vm.kubevirt.io/template: rhel8-server-demo-custom
+      vm.kubevirt.io/template.revision: "1"
+    name: ${NAME}
+  spec:
+    dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: ${NAME}
+      spec:
+        sourceRef:
+          kind: DataSource
+          name: ${DATA_SOURCE_NAME}
+          namespace: ${DATA_SOURCE_NAMESPACE}
+        storage:
+          resources:
+            requests:
+              storage: 30Gi
+    running: true
+    template:
+      metadata:
+        annotations:
+          vm.kubevirt.io/flavor: small
+          vm.kubevirt.io/os: rhel8
+          vm.kubevirt.io/workload: server
+        labels:
+          kubevirt.io/domain: ${NAME}
+          kubevirt.io/size: small
+      spec:
+        domain:
+          cpu:
+            cores: 2
+            sockets: 1
+            threads: 1
+          devices:
+            disks:
+            - disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+            interfaces:
+            - masquerade: {}
+              model: virtio
+              name: default
+            networkInterfaceMultiqueue: true
+            rng: {}
+          machine:
+            type: pc-q35-rhel8.6.0
+          resources:
+            requests:
+              memory: 4Gi
+        evictionStrategy: LiveMigrate
+        networks:
+        - name: default
+          pod: {}
+        nodeSelector:
+          node-role.kubernetes.io/metal: ""
+        terminationGracePeriodSeconds: 180
+        tolerations:
+        - effect: NoSchedule
+          id: 0
+          key: metal
+          operator: Exists
+          value: ""
+        volumes:
+        - dataVolume:
+            name: ${NAME}
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: openshift
+              chpasswd:
+                expire: false
+          name: cloudinitdisk
+parameters:
+- description: VM name
+  name: NAME
+  value: rhel8-vm
+- description: Name of the DataSource to clone
+  name: DATA_SOURCE_NAME
+  value: rhel8
+- description: Namespace of the DataSource
+  name: DATA_SOURCE_NAMESPACE
+  value: openshift-virtualization-os-images
+- description: Randomized password for the cloud-init user cloud-user
+  name: CLOUD_USER_PASSWORD
+  value: openshift
