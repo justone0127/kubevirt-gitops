@@ -46,14 +46,12 @@ objects:
             threads: 1
           devices:
             disks:
-              - bootOrder: 2
-                disk:
-                  bus: virtio
-                name: rootdisk
-              - bootOrder: 3
-                disk:
-                  bus: virtio
-                name: cloudinitdisk
+             - disk:
+                bus: virtio
+               name: rootdisk
+             - disk:
+                bus: virtio
+               name: cloudinitdisk
             interfaces:
             - masquerade: {}
               model: virtio
