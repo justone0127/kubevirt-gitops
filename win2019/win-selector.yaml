@@ -1,6 +1,49 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1
+    vm.kubevirt.io/validations: |
+      [
+        {
+          "name": "minimal-required-memory",
+          "path": "jsonpath::.spec.domain.memory.guest",
+          "rule": "integer",
+          "message": "This VM requires more memory.",
+          "min": 536870912
+        }, {
+          "name": "windows-virtio-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "virtio disk bus type has better performance, install virtio drivers in VM and change bus type",
+          "values": ["virtio"],
+          "justWarning": true
+        }, {
+          "name": "windows-disk-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "disk bus has to be either virtio or sata or scsi",
+          "values": ["virtio", "sata", "scsi"]
+        }, {
+          "name": "windows-cd-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "rule": "enum",
+          "message": "cd bus has to be sata",
+          "values": ["sata"]
+        }
+      ]
+  finalizers:
+  - kubevirt.io/virtualMachineControllerFinalize
+  labels:
+    app: win2019
+    vm.kubevirt.io/template: windows2k19-server-medium
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: "1"
+    vm.kubevirt.io/template.version: v0.27.0
   name: win2019
 spec:
   dataVolumeTemplates:
@@ -18,6 +61,9 @@ spec:
         resources:
           requests:
             storage: 60Gi
+  - metadata:
+      creationTimestamp: null
+      name: win2019-installation-cdrom
     spec:
       source:
         pvc:
@@ -107,14 +153,14 @@ spec:
       - name: default
         pod: {}
       nodeSelector:
-        node-role.kubernetes.io/metal: ""   
+        node-role.kubernetes.io/metal: ""  
       terminationGracePeriodSeconds: 3600
       volumes:
       - dataVolume:
           name: win2019
         name: rootdisk
       - containerDisk:
-          image: quay.io/hanayou/virtio-win-rhel9:v4.14.7-5
+          image: quay.io/hanayou/virtio-win-rhel9@sha256:2d2cad830d249f3db7eb59acb7adc927a11c985c6c62618d759d504e60e6b9b0
         name: windows-drivers-disk
       - dataVolume:
           name: win2019-installation-cdrom
