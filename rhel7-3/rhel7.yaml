@@ -61,8 +61,6 @@ apiVersion: kubevirt.io/v1
        networks:
          - name: default
            pod: {}
-       nodeSelector:
-         node-role.kubernetes.io/metal: ""
        terminationGracePeriodSeconds: 180
        volumes:
          - dataVolume:
