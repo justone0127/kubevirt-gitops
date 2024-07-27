@@ -2,21 +2,21 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   labels:
-    app: ${NAME}
+    app: rhel9
     vm.kubevirt.io/template: rhel9-server-poc
     vm.kubevirt.io/template.revision: "1"
-  name: ${NAME}
+  name: rhel9
 spec:
   dataVolumeTemplates:
     - apiVersion: cdi.kubevirt.io/v1beta1
       kind: DataVolume
       metadata:
-        name: ${NAME}
+        name: rhel9
       spec:
         source:
           pvc:
             name: rhel9-2-image
-            namespace: ${DATA_SOURCE_NAMESPACE}
+            namespace: openshift-virtualization-os-images
         storage:
           resources:
             requests:
@@ -30,7 +30,7 @@ spec:
         vm.kubevirt.io/workload: server
       creationTimestamp: null
       labels:
-        kubevirt.io/domain:  ${NAME}
+        kubevirt.io/domain:  rhel9
         kubevirt.io/size: small
     spec:
       architecture: amd64
@@ -71,7 +71,7 @@ spec:
       terminationGracePeriodSeconds: 180
       volumes:
         - dataVolume:
-            name:  ${NAME}
+            name:  rhel9
           name: rootdisk
         - cloudInitNoCloud:
             userData: |
