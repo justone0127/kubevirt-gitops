@@ -1,0 +1,3 @@
+resources:
+- win2019.yaml
+- sysprep-win2019.yaml
