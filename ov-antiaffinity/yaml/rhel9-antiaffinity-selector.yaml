@@ -1,0 +1,117 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rhel9-server-poc
+objects:
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachine
+  metadata:
+    labels:
+      app: ${NAME}
+      vm.kubevirt.io/template: rhel9-server-poc
+      vm.kubevirt.io/template.revision: "1"
+    name: ${NAME}
+  spec:
+    dataVolumeTemplates:
+      - apiVersion: cdi.kubevirt.io/v1beta1
+        kind: DataVolume
+        metadata:
+          name: ${NAME}
+        spec:
+          source:
+            pvc:
+              name: rhel9-2-image
+              namespace: ${DATA_SOURCE_NAMESPACE}
+          storage:
+            resources:
+              requests:
+                storage: 30Gi
+    running: true
+    template:
+      metadata:
+        annotations:
+          vm.kubevirt.io/flavor: small
+          vm.kubevirt.io/os: rhel9
+          vm.kubevirt.io/workload: server
+        creationTimestamp: null
+        labels:
+          kubevirt.io/domain:  ${NAME}
+          kubevirt.io/size: small
+          app: web
+      spec:
+        architecture: amd64
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - web
+                  topologyKey: kubernetes.io/hostname
+                weight: 100        
+        domain:
+          cpu:
+            cores: 2
+            sockets: 1
+            threads: 1
+          devices:
+            disks:
+             - disk:
+                bus: virtio
+               name: rootdisk
+             - disk:
+                bus: virtio
+               name: cloudinitdisk
+            interfaces:
+            - masquerade: {}
+              model: virtio
+              name: default
+            networkInterfaceMultiqueue: true
+            rng: {}
+          features:
+            acpi: {}
+            smm:
+              enabled: true
+          firmware:
+            bootloader:
+              efi: {}
+          machine:
+            type: pc-q35-rhel9.2.0
+          memory:
+            guest: 4Gi
+          resources: {}
+        networks:
+          - name: default
+            pod: {}
+        nodeSelector:
+          node-role.kubernetes.io/metal: ""
+        terminationGracePeriodSeconds: 180
+        volumes:
+          - dataVolume:
+              name:  ${NAME}
+            name: rootdisk
+          - cloudInitNoCloud:
+              userData: |
+                #cloud-config
+                user: cloud-user
+                password: openshift
+                chpasswd:
+                  expire: false
+            name: cloudinitdisk
+parameters:
+- description: VM name
+  from: rhel9-vm
+  generate: expression
+  name: NAME
+- description: Name of the DataSource to clone
+  name: DATA_SOURCE_NAME
+  value: rhel9
+- description: Namespace of the DataSource
+  name: DATA_SOURCE_NAMESPACE
+  value: openshift-virtualization-os-images
+- description: Randomized password for the cloud-init user cloud-user
+  name: CLOUD_USER_PASSWORD
+  value: openshift
