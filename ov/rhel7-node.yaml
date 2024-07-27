@@ -1,0 +1,88 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  annotations:
+   vm.kubevirt.io/validations: |
+     [
+       {
+         "name": "minimal-required-memory",
+         "path": "jsonpath::.spec.domain.memory.guest",
+         "rule": "integer",
+         "message": "This VM requires more memory.",
+         "min": 1073741824
+       }
+     ]
+  labels:
+    app: rhel7
+    vm.kubevirt.io/template: rhel7-server-poc
+    vm.kubevirt.io/template.revision: "1"
+  name: rhel7
+spec:
+  dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: rhel7
+      spec:
+        source:
+          pvc:
+            name: rhel7-3-image
+            namespace: openshift-virtualization-os-images
+        storage:
+          resources:
+            requests:
+              storage: 30Gi
+  running: true
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: small
+        vm.kubevirt.io/os: rhel7
+        vm.kubevirt.io/workload: server
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: rhel7
+        kubevirt.io/size: small
+    spec:
+      architecture: amd64
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          interfaces:
+          - masquerade: {}
+            model: virtio
+            name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        memory:
+          guest: 2Gi
+        resources: {}
+      networks:
+        - name: default
+          pod: {}
+      nodeSelector:
+        node-role.kubernetes.io/metal: ""
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - dataVolume:
+            name: rhel7
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: cloud-user
+              password: redhat
+              chpasswd: { expire: False }
+          name: cloudinitdisk
