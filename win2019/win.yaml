@@ -1,128 +1,123 @@
-apiVersion: template.openshift.io/v1
-kind: Template
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
 metadata:
-  name: win-poc-template
-objects:
-- apiVersion: kubevirt.io/v1
-  kind: VirtualMachine
-  metadata:
-    name: win2019
-  spec:
-    dataVolumeTemplates:
-    - apiVersion: cdi.kubevirt.io/v1beta1
-      kind: DataVolume
-      metadata:
-        annotations:
-          cdi.kubevirt.io/storage.bind.immediate.requested: "true"
-        creationTimestamp: null
-        name: win2019
-      spec:
-        source:
-          blank: {}
-        storage:
-          resources:
-            requests:
-              storage: 60Gi
-      spec:
-        source:
-          pvc:
-            name: win2019-image
-            namespace: openshift-virtualization-os-images
-        storage:
-          resources:
-            requests:
-              storage: 6Gi
-    running: true
-    template:
-      metadata:
-        annotations:
-          vm.kubevirt.io/flavor: medium
-          vm.kubevirt.io/os: windows2k19
-          vm.kubevirt.io/workload: server
-        creationTimestamp: null
-        labels:
-          kubevirt.io/domain: win2019
-          kubevirt.io/size: medium
-      spec:
-        architecture: amd64
-        domain:
-          clock:
-            timer:
-              hpet:
-                present: false
-              hyperv: {}
-              pit:
-                tickPolicy: delay
-              rtc:
-                tickPolicy: catchup
-            utc: {}
-          cpu:
-            cores: 2
-            sockets: 1
-            threads: 1
-          devices:
-            disks:
-            - bootOrder: 2
-              disk:
-                bus: sata
-              name: rootdisk
-            - bootOrder: 3
-              cdrom:
-                bus: sata
-              name: windows-drivers-disk
-            - bootOrder: 1
-              cdrom:
-                bus: sata
-              name: installation-cdrom
-            - cdrom:
-                bus: sata
-              name: sysprep
-            inputs:
-            - bus: usb
-              name: tablet
-              type: tablet
-            interfaces:
-            - masquerade: {}
-              model: e1000e
-              name: default
-          features:
-            acpi: {}
-            apic: {}
-            hyperv:
-              frequencies: {}
-              ipi: {}
-              reenlightenment: {}
-              relaxed: {}
-              reset: {}
-              runtime: {}
-              spinlocks:
-                spinlocks: 8191
-              synic: {}
-              synictimer:
-                direct: {}
-              tlbflush: {}
-              vapic: {}
-              vpindex: {}
-          machine:
-            type: pc-q35-rhel9.2.0
-          memory:
-            guest: 8Gi
-          resources: {}
-        networks:
-        - name: default
-          pod: {}
-        terminationGracePeriodSeconds: 3600
-        volumes:
-        - dataVolume:
-            name: win2019
-          name: rootdisk
-        - containerDisk:
-            image: quay.io/hanayou/virtio-win-rhel9:v4.14.7-5
-          name: windows-drivers-disk
-        - dataVolume:
-            name: win2019-installation-cdrom
-          name: installation-cdrom
-        - name: sysprep
-          sysprep:
-            configMap:
-              name: sysprep-win2019
+  name: win2019
+spec:
+  dataVolumeTemplates:
+  - apiVersion: cdi.kubevirt.io/v1beta1
+    kind: DataVolume
+    metadata:
+      annotations:
+        cdi.kubevirt.io/storage.bind.immediate.requested: "true"
+      creationTimestamp: null
+      name: win2019
+    spec:
+      source:
+        blank: {}
+      storage:
+        resources:
+          requests:
+            storage: 60Gi
+    spec:
+      source:
+        pvc:
+          name: win2019-image
+          namespace: openshift-virtualization-os-images
+      storage:
+        resources:
+          requests:
+            storage: 6Gi
+  running: true
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: medium
+        vm.kubevirt.io/os: windows2k19
+        vm.kubevirt.io/workload: server
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: win2019
+        kubevirt.io/size: medium
+    spec:
+      architecture: amd64
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+          - bootOrder: 2
+            disk:
+              bus: sata
+            name: rootdisk
+          - bootOrder: 3
+            cdrom:
+              bus: sata
+            name: windows-drivers-disk
+          - bootOrder: 1
+            cdrom:
+              bus: sata
+            name: installation-cdrom
+          - cdrom:
+              bus: sata
+            name: sysprep
+          inputs:
+          - bus: usb
+            name: tablet
+            type: tablet
+          interfaces:
+          - masquerade: {}
+            model: e1000e
+            name: default
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            frequencies: {}
+            ipi: {}
+            reenlightenment: {}
+            relaxed: {}
+            reset: {}
+            runtime: {}
+            spinlocks:
+              spinlocks: 8191
+            synic: {}
+            synictimer:
+              direct: {}
+            tlbflush: {}
+            vapic: {}
+            vpindex: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        memory:
+          guest: 8Gi
+        resources: {}
+      networks:
+      - name: default
+        pod: {}
+      terminationGracePeriodSeconds: 3600
+      volumes:
+      - dataVolume:
+          name: win2019
+        name: rootdisk
+      - containerDisk:
+          image: quay.io/hanayou/virtio-win-rhel9:v4.14.7-5
+        name: windows-drivers-disk
+      - dataVolume:
+          name: win2019-installation-cdrom
+        name: installation-cdrom
+      - name: sysprep
+        sysprep:
+          configMap:
+            name: sysprep-win2019
