@@ -16,7 +16,7 @@ spec:
         source:
           pvc:
             name: rhel9-2-image
-            namespace: rhel9
+            namespace: openshift-virtualization-os-images
         storage:
           resources:
             requests:
@@ -79,7 +79,7 @@ spec:
             userData: |
               #cloud-config
               user: cloud-user
-              password: openshift
+              password: redhat
               chpasswd:
                 expire: false
           name: cloudinitdisk
