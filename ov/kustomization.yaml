@@ -1,2 +1,4 @@
 resources:
 - rhel2.yaml
+- win.yaml
+- sysprep-win2019.yaml
